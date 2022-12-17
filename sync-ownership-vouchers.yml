@@ -1,0 +1,59 @@
+---
+- name: Set working directories
+  gather_facts: true
+  hosts:
+    - manufacturing
+    - owner-onboarding
+
+  tasks:
+    - ansible.builtin.set_fact:
+        fdo_working_directory: "{{ ansible_env.HOME}}/fdo"
+        temp_ov_dir: "{{ playbook_dir }}/.tmp-vouchers"
+
+- name: Fetch ownership vouchers from manufacturing server
+  gather_facts: false
+  hosts: manufacturing
+
+  tasks:
+    - name: Create temp directory
+      ansible.builtin.file:
+        path: "{{ temp_ov_dir }}"
+        state: directory
+      delegate_to: localhost
+
+    - name: List manufacturing vouchers
+      ansible.builtin.find:
+        paths: "{{ fdo_working_directory }}/manufacturing_server/owner_vouchers/"
+        recurse: no
+      register: _manufacturer_ov_files
+
+    - name: Copy vouchers into temp directory
+      ansible.builtin.fetch:
+        src: "{{ item }}"
+        dest: "{{ temp_ov_dir }}/"
+        flat: true
+      with_items: "{{ _manufacturer_ov_files | community.general.json_query('files[*].path') }}"
+
+- name: Copy ownership vouchers to onboarding server
+  gather_facts: false
+  hosts: owner-onboarding
+
+  tasks:
+    - name: List local vouchers
+      ansible.builtin.find:
+        paths: "{{ temp_ov_dir }}/"
+        recurse: no
+      register: _local_ov_files
+      delegate_to: localhost
+
+    - name: Copy vouchers from temp directory to onboarding server
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ fdo_working_directory }}/owner_onboarding_server/owner_vouchers/"
+      with_items: "{{ _local_ov_files | community.general.json_query('files[*].path') }}"
+
+    - name: Delete temp directory
+      ansible.builtin.file:
+        path: "{{ temp_ov_dir }}"
+        state: absent
+      delegate_to: localhost

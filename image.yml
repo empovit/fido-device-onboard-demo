@@ -1,0 +1,41 @@
+---
+- name: Set up an FDO environment and generate a FDO-enabled RHEL for Edge image
+  gather_facts: true
+  hosts: image-builder
+
+  vars:
+    fdo_working_directory: "{{ ansible_env.HOME}}/fdo"
+    manufacturing_server: "{{ hostvars['manufacturing'].ansible_host | default(hostvars['manufacturing'].inventory_hostname) }}"
+    download_image: false
+
+  pre_tasks:
+
+    - name: Install packages
+      ansible.builtin.package:
+        name:
+          - osbuild-composer
+          - composer-cli
+          - podman
+        state: present
+
+    - name: Ensure working directory
+      ansible.builtin.file:
+        path: "{{ fdo_working_directory }}"
+        state: directory
+
+  roles:
+    - rhel4edge_image
+    - repo_publishing
+    - fdo_image
+
+  tasks:
+    - name: Copy the final image
+      ansible.builtin.fetch:
+        src: "{{ fdo_working_directory }}/{{ fdo_image_file }}"
+        dest: "{{ playbook_dir }}/"
+        flat: true
+      when: download_image | bool
+
+    - debug:
+        msg: "Downloaded file: {{ playbook_dir }}/{{ fdo_image_file }}"
+      when: download_image | bool

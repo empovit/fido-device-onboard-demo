@@ -1,0 +1,21 @@
+---
+session_store_driver:
+  Directory:
+    path: {{ component_directory }}/owner_onboarding_sessions/
+ownership_voucher_store_driver:
+  Directory:
+    path: {{ component_directory }}/owner_vouchers/
+trusted_device_keys_path: {{ component_directory }}/keys/device_ca_cert.pem
+owner_private_key_path: {{ component_directory }}/keys/owner_key.der
+owner_public_key_path: {{ component_directory }}/keys/owner_cert.pem
+owner_addresses:
+- transport: HTTP
+  port: 8081
+  addresses:
+    - ip_address: {{ owner_host }}
+report_to_rendezvous_endpoint_enabled: true
+bind: 0.0.0.0:8081
+service_info_api_url: "http://{{ serviceinfo_api_host }}:8083/device_info"
+service_info_api_authentication:
+  BearerToken:
+    token: {{ serviceinfo_api_token }}

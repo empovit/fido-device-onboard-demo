@@ -1,0 +1,4 @@
+*.log
+*.iso
+keys/
+inventory.yml

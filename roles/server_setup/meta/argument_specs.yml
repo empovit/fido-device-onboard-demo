@@ -1,0 +1,46 @@
+---
+argument_specs:
+  main:
+    short_description: Running an FDO server (manufacturing, owner-onboarding, rendezvous, or serviceinfo_api)
+
+    options:
+
+      component_name:
+        type: str
+        required: true
+        description: "Component name, one of the available values"
+        choices:
+        - manufacturing-server
+        - rendezvous-server
+        - owner-onboarding-server
+        - serviceinfo-api-server
+
+      fdo_working_directory:
+        type: str
+        required: true
+        description: "Directory for keeping server files, such as keys and session"
+
+      subdirectories:
+        type: list
+        required: false
+        description: "Subdirectories to be created in the server directory"
+        elements: str
+        default: []
+
+      keys_directory:
+        type: str
+        required: true
+        description: "Directory from where to copy keys and certificates"
+
+      remote_keys:
+        type: bool
+        required: false
+        description: "Whether the keys should be copied from the local (controller) machine or from a directory on the remote host"
+        default: true
+
+      keys:
+        type: list
+        required: false
+        description: "Directory for keeping server files, such as keys and session"
+        elements: str
+        default: []

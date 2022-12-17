@@ -1,0 +1,19 @@
+name = "rhel-for-edge-iso"
+description = "RHEL for Edge with user customizations"
+version = "0.0.1"
+packages = []
+modules = []
+groups = []
+
+[[customizations.sshkey]]
+user = "root"
+key = "{{ ssh_key }}"
+
+[[customizations.user]]
+name = "admin"
+description = "Admin User"
+password = "{{ password }}"
+key = "{{ ssh_key }}"
+home = "/home/admin/"
+shell = "/usr/bin/bash"
+groups = ["users", "wheel"]

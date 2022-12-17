@@ -1,0 +1,29 @@
+- name: Create FDO blueprint
+  ansible.builtin.template:
+    src: fdo-blueprint.toml.j2
+    dest: "{{ fdo_working_directory }}/fdo-blueprint.toml"
+
+- name: Push the FDO blueprint
+  ansible.builtin.command: composer-cli blueprints push {{ fdo_working_directory }}/fdo-blueprint.toml
+
+- name: Start FDO compose
+  ansible.builtin.command: composer-cli compose start-ostree blueprint-fdo edge-simplified-installer --ref rhel/9/x86_64/edge --url http://{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}:8090/repo/ -j
+  register: _fdo_compose_output
+
+- ansible.builtin.set_fact:
+    fdo_compose_id: "{{ _fdo_compose_output.stdout | from_json | community.general.json_query('body.build_id')}}"
+
+- name: Wait for the compose {{ fdo_compose_id }} to finish
+  ansible.builtin.shell: composer-cli compose status | grep {{ fdo_compose_id }} | awk '{print $2}'
+  register: _compose_status_output
+  until: _compose_status_output.stdout in ["FINISHED", "FAILED"]
+  delay: 30
+  retries: 60
+
+- name: Download the FDO image
+  ansible.builtin.command: composer-cli compose image {{ fdo_compose_id }}
+  args:
+    chdir: "{{ fdo_working_directory }}"
+
+- ansible.builtin.set_fact:
+    fdo_image_file: "{{ fdo_compose_id }}-simplified-installer.iso"

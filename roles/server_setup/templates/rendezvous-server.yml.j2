@@ -1,0 +1,9 @@
+---
+storage_driver:
+  Directory:
+    path: {{ component_directory }}/rendezvous_registered/
+session_store_driver:
+  Directory:
+    path: {{ component_directory }}/rendezvous_sessions/
+trusted_manufacturer_keys_path: {{ component_directory }}/keys/manufacturer_cert.pem
+bind: 0.0.0.0:8082

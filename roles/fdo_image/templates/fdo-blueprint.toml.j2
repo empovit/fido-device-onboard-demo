@@ -1,0 +1,14 @@
+name = "blueprint-fdo"
+description = "Blueprint for FDO"
+version = "0.0.1"
+packages = []
+modules = []
+groups = []
+distro = ""
+
+[customizations]
+installation_device = "/dev/vda"
+
+[customizations.fdo]
+manufacturing_server_url = "http://{{ manufacturing_server }}:8080"
+diun_pub_key_insecure = "true"
