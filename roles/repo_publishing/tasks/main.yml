@@ -5,5 +5,11 @@
 - ansible.builtin.set_fact:
     container_image_id: "{{ _container_image_output.stdout.split('\n')[-1].split(':')[-1] }}"
 
+- name: Open repo port in firewall
+  ansible.posix.firewalld:
+    port: 8090/tcp
+    permanent: no
+    state: enabled
+
 - name: Run Web server in container
   ansible.builtin.shell: podman stop -i {{ repo_container_name }} && podman run --rm -d --name {{ repo_container_name }} -p 8090:8080 {{ container_image_id }}

@@ -49,3 +49,16 @@
     name: fdo-{{ component_name }}
     state: started
     enabled: true
+
+- name: Open {{ component_name }} service port in firewall
+  ansible.posix.firewalld:
+    port: "{{ service_ports[component_name] }}/tcp"
+    state: enabled
+    permanent: true
+    immediate: true
+  vars:
+    service_ports:
+      manufacturing-server: 8080
+      owner-onboarding-server: 8081
+      rendezvous-server: 8082
+      serviceinfo-api-server: 8083
