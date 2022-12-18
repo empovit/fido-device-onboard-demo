@@ -1,4 +1,5 @@
 *.log
 *.iso
+*.qcow2
 keys/
 inventory.yml

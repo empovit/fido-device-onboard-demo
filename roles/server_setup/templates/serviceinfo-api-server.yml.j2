@@ -5,5 +5,5 @@ device_specific_store_driver:
     path: {{ component_directory }}/device_specific_serviceinfo
 service_info:
   {{ service_info | indent(width=2) }}
-service_info_auth_token: {{ serviceinfo_api_token }}
-admin_auth_token: zJNoErq7aa0RusJ1w0tkTjdITdMCWYkndzVv7F0V42Q=
+service_info_auth_token: "{{ serviceinfo_api_token }}"
+admin_auth_token: "{{ serviceinfo_api_admin_token }}"

@@ -18,6 +18,12 @@
           - podman
         state: present
 
+    - name: Start composer service
+      ansible.builtin.systemd:
+        name: osbuild-composer.socket
+        state: started
+        enabled: true
+
     - name: Ensure working directory
       ansible.builtin.file:
         path: "{{ fdo_working_directory }}"

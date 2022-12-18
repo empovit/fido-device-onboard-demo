@@ -7,7 +7,7 @@ groups = []
 distro = ""
 
 [customizations]
-installation_device = "/dev/vda"
+installation_device = "{{ rhel_installation_device }}"
 
 [customizations.fdo]
 manufacturing_server_url = "http://{{ manufacturing_server }}:8080"

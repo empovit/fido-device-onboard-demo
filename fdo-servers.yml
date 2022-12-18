@@ -83,28 +83,15 @@
           - manufacturer_cert.pem
         keys_directory: "{{ shared_keys_directory }}"
 
-- name: Set up owner-onboarding server
-  gather_facts: true
-  hosts: owner-onboarding
-  roles:
-    - role: server_setup
-      vars:
-        component_name: owner-onboarding-server
-        serviceinfo_api_host: "{{ hostvars['serviceinfo-api'].ansible_host | default(hostvars['serviceinfo-api'].inventory_hostname) }}"
-        serviceinfo_api_token: Kpt5P/5flBkaiNSvDYS3cEdBQXJn2Zv9n1D50431/lo=
-        owner_host: "{{ hostvars['owner-onboarding'].ansible_host | default(hostvars['owner-onboarding'].inventory_hostname) }}"
-        subdirectories:
-          - owner_onboarding_sessions
-          - owner_vouchers
-        keys:
-          - device_ca_cert.pem
-          - owner_key.der
-          - owner_cert.pem
-        keys_directory: "{{ shared_keys_directory }}"
-
 - name: Set up serviceinfo-api server
   gather_facts: true
   hosts: serviceinfo-api
+
+  pre_tasks:
+    - ansible.builtin.set_fact:
+        serviceinfo_api_token: "{{ lookup('ansible.builtin.password', '/dev/null') }}"
+        serviceinfo_api_admin_token: "{{ lookup('ansible.builtin.password', '/dev/null') }}"
+
   roles:
     - role: server_setup
       vars:
@@ -112,7 +99,6 @@
         packages:
           - fdo-owner-onboarding-server
         # This is an example of service info injected into a device on onboarding
-        serviceinfo_api_token: Kpt5P/5flBkaiNSvDYS3cEdBQXJn2Zv9n1D50431/lo=
         service_info: |
           initial_user:
             username: admin
@@ -136,4 +122,23 @@
           additional_serviceinfo: ~
         subdirectories:
           - device_specific_serviceinfo
+        keys_directory: "{{ shared_keys_directory }}"
+
+- name: Set up owner-onboarding server
+  gather_facts: true
+  hosts: owner-onboarding
+  roles:
+    - role: server_setup
+      vars:
+        component_name: owner-onboarding-server
+        serviceinfo_api_host: "{{ hostvars['serviceinfo-api'].ansible_host | default(hostvars['serviceinfo-api'].inventory_hostname) }}"
+        serviceinfo_api_token: "{{ hostvars['serviceinfo-api'].serviceinfo_api_token }}"
+        owner_host: "{{ hostvars['owner-onboarding'].ansible_host | default(hostvars['owner-onboarding'].inventory_hostname) }}"
+        subdirectories:
+          - owner_onboarding_sessions
+          - owner_vouchers
+        keys:
+          - device_ca_cert.pem
+          - owner_key.der
+          - owner_cert.pem
         keys_directory: "{{ shared_keys_directory }}"
