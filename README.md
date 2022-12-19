@@ -2,9 +2,12 @@
 
 This repository contains Ansible playbooks for setting up a [FIDO Device Onboard (FDO)](https://fidoalliance.org/specifications/download-iot-specifications/) environment, using the [Fedora IOT implementation](https://github.com/fedora-iot/fido-device-onboard-rs/) of the FDO specification.
 
+As part of device onboarding, the operating system (OS) used for FDO initialization is replaced by an [OS distributed as a container image](https://coreos.github.io/rpm-ostree/container/).
+
 Useful links
 
 * [How to onboard edge devices at scale with FDO and Linux](https://www.redhat.com/sysadmin/edge-device-onboarding-fdo)
+* [RHEL for Edge Image builder demo](https://github.com/kwozyman/rhel-edge-demo/tree/containers#readme)
 
 ## Setting up servers
 
@@ -53,7 +56,7 @@ and then add it to the inventory with a [podman connection](https://docs.ansible
       ansible_user: root
 ```
 
-## Building an image
+## Building a RHEL for Edge image
 
 You will need a RHEL 9.x machine to build a simplified RHEL for Edge installer image. Add the host to the inventory as an `image-builder`, e.g.:
 
@@ -70,6 +73,10 @@ ansible-playbook image.yml -i inventory.yml -e root_ssh_key_file=~/.ssh/id_ed255
 ```
 
 By default, an FDO image built by the playbook will use the IPv4 address of a `manufacturing` host in the inventory. You can override this with `-e manufacturing_server=<host>`.
+
+## Building an OS container image
+
+**NOTICE:** For simplicity and performance, the OS container image will be built with the same playbook, and on top of the same RHEL for Edge base image as the FDO image. Also, it will be made available through a container image registry on the image builder machine. In real life though, the FDO image belongs in manufacturing while the OS container image belongs in owner onboarding. That is, it is likely to be used to run a custom OS after a device has been onboarded by FDO.
 
 ## Initializing a device
 
