@@ -47,7 +47,7 @@
 - name: Start fdo-{{ component_name }} service
   ansible.builtin.systemd:
     name: fdo-{{ component_name }}
-    state: started
+    state: restarted
     enabled: true
 
 - name: Open {{ component_name }} service port in firewall
