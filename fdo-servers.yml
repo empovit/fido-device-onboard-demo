@@ -107,10 +107,18 @@
           files:
           - path: /root/resolv.conf
             source_path: /etc/resolv.conf
+          - path: /root/container-switch.sh
+            source_path: /etc/fdo/scripts/container-switch.sh
           commands:
           - command: touch
             args:
             - /root/test
+            return_stdout: true
+            return_stderr: true
+          - command: /bin/bash
+            args:
+            - /root/container-switch.sh
+            - ostree-unverified-registry:quay.io/kwozyman/r4e:test
             return_stdout: true
             return_stderr: true
           diskencryption_clevis:

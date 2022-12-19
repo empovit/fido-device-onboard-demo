@@ -16,6 +16,7 @@
           - osbuild-composer
           - composer-cli
           - podman
+          - skopeo
         state: present
 
     - name: Start composer service
@@ -38,6 +39,7 @@
   roles:
     - rhel4edge_image
     - repo_publishing
+    - oscontainer_build
     - fdo_image
 
   tasks:

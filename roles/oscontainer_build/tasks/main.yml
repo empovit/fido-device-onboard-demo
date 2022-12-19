@@ -1,0 +1,8 @@
+- name: Extract ostree repo from http repo container
+  ansible.builtin.command: podman cp {{ repo_container_name }}:/usr/share/nginx/html/repo {{ fdo_working_directory }}/{{ base_compose_id }}-repo
+  args:
+    creates: "{{ fdo_working_directory }}/repo"
+- name: Create OS container image file
+  ansible.builtin.command: ostree container encapsulate --repo={{ fdo_working_directory }}/{{ base_compose_id }}-repo rhel/9/x86_64/edge oci-archive:{{ fdo_working_directory }}/{{ base_compose_id }}-os-container.tar
+  args:
+    creates: "{{ fdo_working_directory }}/{{ base_compose_id }}-os-container.tar"
