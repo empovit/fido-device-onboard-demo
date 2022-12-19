@@ -6,6 +6,7 @@
   vars:
     fdo_working_directory: "{{ ansible_env.HOME}}/fdo"
     manufacturing_server: "{{ hostvars['manufacturing'].ansible_host | default(hostvars['manufacturing'].inventory_hostname) }}"
+    image_builder_server: "{{ hostvars['image-builder'].ansible_host | default(hostvars['image-builder'].inventory_hostname) }}"
     download_image: false
 
   pre_tasks:
@@ -16,6 +17,7 @@
           - osbuild-composer
           - composer-cli
           - podman
+          - skopeo
         state: present
 
     - name: Start composer service
@@ -32,6 +34,7 @@
   roles:
     - rhel4edge_image
     - repo_publishing
+    - oscontainer_build
     - fdo_image
 
   tasks:

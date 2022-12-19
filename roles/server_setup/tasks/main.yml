@@ -44,6 +44,30 @@
     dest: /etc/fdo/{{ component_name }}.conf.d/{{ component_name }}.yml
     backup: true
 
+
+- ansible.builtin.set_fact:
+    image_builder_server: "{{ hostvars['image-builder'].ansible_host | default(hostvars['image-builder'].inventory_hostname) }}"
+
+- name: Ensure registries directory exists
+  ansible.builtin.file:
+    path: /etc/containers/registries.conf.d
+    state: directory
+
+- name: Create registry entry
+  ansible.builtin.template:
+    src: registries.j2
+    dest: "/etc/containers/registries.conf.d/003-r4e.conf"
+
+- name: Ensure script directory
+  ansible.builtin.file:
+    path: /etc/fdo/scripts
+    state: directory
+
+- name: Create switch script
+  ansible.builtin.copy:
+    src: container-switch.sh
+    dest: /etc/fdo/scripts/container-switch.sh
+
 - name: Start fdo-{{ component_name }} service
   ansible.builtin.systemd:
     name: fdo-{{ component_name }}

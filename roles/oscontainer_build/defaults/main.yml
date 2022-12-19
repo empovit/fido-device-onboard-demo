@@ -1,0 +1,3 @@
+registry_container_name: registry
+registry_image: docker.io/library/registry:2
+

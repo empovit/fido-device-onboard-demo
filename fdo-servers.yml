@@ -107,10 +107,20 @@
           files:
           - path: /root/resolv.conf
             source_path: /etc/resolv.conf
+          - path: /root/container-switch.sh
+            source_path: /etc/fdo/scripts/container-switch.sh
+          - path: /etc/containers/registries.conf.d/003-r4e.conf
+            source_path: /etc/containers/registries.conf.d/003-r4e.conf
           commands:
           - command: touch
             args:
             - /root/test
+            return_stdout: true
+            return_stderr: true
+          - command: /bin/bash
+            args:
+            - /root/container-switch.sh
+            - ostree-unverified-registry:{{ image_builder_server }}:5000/r4e:base
             return_stdout: true
             return_stderr: true
           diskencryption_clevis:

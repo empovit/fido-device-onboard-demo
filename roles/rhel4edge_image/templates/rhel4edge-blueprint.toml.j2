@@ -1,9 +1,12 @@
 name = "rhel-for-edge-iso"
 description = "RHEL for Edge with user customizations"
 version = "0.0.1"
-packages = []
 modules = []
 groups = []
+
+[[packages]]
+name = "subscription-manager"
+version = "*"
 
 [[customizations.sshkey]]
 user = "root"
