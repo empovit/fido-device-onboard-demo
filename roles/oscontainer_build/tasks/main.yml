@@ -14,6 +14,13 @@
 - ansible.builtin.set_fact:
     oscontainer_image_id: "{{ _oscontainer_image_output.stdout.split('\n')[-1].split(':')[-1] }}"
 
+- name: Open image registry port in firewall
+  ansible.posix.firewalld:
+    port: "5000/tcp"
+    state: enabled
+    permanent: true
+    immediate: true
+
 - name: Run container registry
   ansible.builtin.shell: podman stop -i {{ registry_container_name }} && podman run --rm -d --name {{ registry_container_name }} -p 5000:5000 {{ registry_image }}
 

@@ -6,7 +6,7 @@
   vars:
     fdo_working_directory: "{{ ansible_env.HOME}}/fdo"
     manufacturing_server: "{{ hostvars['manufacturing'].ansible_host | default(hostvars['manufacturing'].inventory_hostname) }}"
-    image_builder_server: "{{ hostvars['image-builder'].ansible_host | default(hostvars['image-builder'].inventory_hostname) }}"
+    image_builder_server: "{{ ansible_host | default(inventory_hostname) }}"
     download_image: false
 
   pre_tasks:

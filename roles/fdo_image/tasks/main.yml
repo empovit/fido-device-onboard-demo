@@ -7,7 +7,7 @@
   ansible.builtin.command: composer-cli blueprints push {{ fdo_working_directory }}/fdo-blueprint.toml
 
 - name: Start FDO compose
-  ansible.builtin.command: composer-cli compose start-ostree blueprint-fdo edge-simplified-installer --ref rhel/9/x86_64/edge --url http://{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}:8090/repo/ -j
+  ansible.builtin.command: composer-cli compose start-ostree blueprint-fdo edge-simplified-installer --ref rhel/9/x86_64/edge --url http://{{ ansible_host | default(inventory_hostname) }}:8090/repo/ -j
   register: _fdo_compose_output
 
 - ansible.builtin.set_fact:

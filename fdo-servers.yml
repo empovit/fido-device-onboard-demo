@@ -91,32 +91,28 @@
     - ansible.builtin.set_fact:
         serviceinfo_api_token: "{{ lookup('ansible.builtin.password', '/dev/null') }}"
         serviceinfo_api_admin_token: "{{ lookup('ansible.builtin.password', '/dev/null') }}"
+        image_builder_server: "{{ hostvars['image-builder'].ansible_host | default(hostvars['image-builder'].inventory_hostname) }}"
+        serviceinfo_api_storage_dir: "{{ fdo_working_directory }}/serviceinfo_api_server"
 
   roles:
+    - role: serviceinfo_api
     - role: server_setup
       vars:
         component_name: serviceinfo-api-server
         packages:
           - fdo-owner-onboarding-server
-        # This is an example of service info injected into a device on onboarding
+        # Pull an OS container image and switch over to that OS upon onboarding
         service_info: |
           initial_user:
             username: admin
             sshkeys:
             - "{{ lookup('file', admin_ssh_key_file )}}"
           files:
-          - path: /root/resolv.conf
-            source_path: /etc/resolv.conf
           - path: /root/container-switch.sh
-            source_path: /etc/fdo/scripts/container-switch.sh
+            source_path: {{ serviceinfo_api_storage_dir }}/scripts/container-switch.sh
           - path: /etc/containers/registries.conf.d/003-r4e.conf
-            source_path: /etc/containers/registries.conf.d/003-r4e.conf
+            source_path: {{ serviceinfo_api_storage_dir }}/registries.conf.d/003-r4e.conf
           commands:
-          - command: touch
-            args:
-            - /root/test
-            return_stdout: true
-            return_stderr: true
           - command: /bin/bash
             args:
             - /root/container-switch.sh
