@@ -24,6 +24,12 @@
         state: started
         enabled: true
 
+   - name: Enable osbuild-composer socket
+      ansible.builtin.service:
+        name: osbuild-composer.socket
+        state: started
+        enabled: yes
+
     - name: Ensure working directory
       ansible.builtin.file:
         path: "{{ fdo_working_directory }}"
