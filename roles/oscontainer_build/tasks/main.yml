@@ -2,7 +2,20 @@
   ansible.builtin.command: podman cp {{ repo_container_name }}:/usr/share/nginx/html/repo {{ fdo_working_directory }}/{{ base_compose_id }}-repo
   args:
     creates: "{{ fdo_working_directory }}/repo"
+
 - name: Create OS container image file
   ansible.builtin.command: ostree container encapsulate --repo={{ fdo_working_directory }}/{{ base_compose_id }}-repo rhel/9/x86_64/edge oci-archive:{{ fdo_working_directory }}/{{ base_compose_id }}-os-container.tar
   args:
     creates: "{{ fdo_working_directory }}/{{ base_compose_id }}-os-container.tar"
+
+- name: Load os-container to podman
+  ansible.builtin.command: podman load -i {{ fdo_working_directory }}/{{ base_compose_id }}-os-container.tar
+  register: _oscontainer_image_output
+- ansible.builtin.set_fact:
+    oscontainer_image_id: "{{ _oscontainer_image_output.stdout.split('\n')[-1].split(':')[-1] }}"
+
+- name: Run container registry
+  ansible.builtin.shell: podman stop -i {{ registry_container_name }} && podman run --rm -d --name {{ registry_container_name }} -p 5000:5000 {{ registry_image }}
+
+- name: Push os container to registry
+  ansible.builtin.shell: podman push --tls-verify=false {{ oscontainer_image_id }} {{ image_builder_server }}:5000/r4e:base

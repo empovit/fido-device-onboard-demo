@@ -6,6 +6,7 @@
   vars:
     fdo_working_directory: "{{ ansible_env.HOME}}/fdo"
     manufacturing_server: "{{ hostvars['manufacturing'].ansible_host | default(hostvars['manufacturing'].inventory_hostname) }}"
+    image_builder_server: "{{ hostvars['image-builder'].ansible_host | default(hostvars['image-builder'].inventory_hostname) }}"
     download_image: false
 
   pre_tasks:
@@ -24,12 +25,6 @@
         name: osbuild-composer.socket
         state: started
         enabled: true
-
-   - name: Enable osbuild-composer socket
-      ansible.builtin.service:
-        name: osbuild-composer.socket
-        state: started
-        enabled: yes
 
     - name: Ensure working directory
       ansible.builtin.file:
