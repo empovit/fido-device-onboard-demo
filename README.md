@@ -76,7 +76,7 @@ By default, an FDO image built by the playbook will use the IPv4 address of a `m
 
 ## Building an OS container image
 
-**NOTICE:** For simplicity and performance, the OS container image will be built with the same playbook, and on top of the same RHEL for Edge base image as the FDO image. Also, it will be made available through a container image registry on the image builder machine. In real life though, the FDO image belongs in manufacturing while the OS container image belongs in owner onboarding. That is, it is likely to be used to run a custom OS after a device has been onboarded by FDO.
+**NOTICE:** For simplicity and performance, the OS container image is built on top of the same RHEL for Edge base image as the FDO image. Also, we make it available through a container image registry on the image builder machine. In real life though, the FDO image belongs in manufacturing while the OS container image belongs in owner onboarding and is likely to be used to run a custom OS on a device onboarded by FDO.
 
 ## Initializing a device
 

@@ -1,5 +1,5 @@
 ---
-- name: Set up an FDO environment and generate a FDO-enabled RHEL for Edge image
+- name: Generate a FDO-enabled RHEL for Edge image and a RHEL for Edge OS container image
   gather_facts: true
   hosts: image-builder
 
