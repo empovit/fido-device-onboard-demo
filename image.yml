@@ -23,7 +23,13 @@
     - name: Start composer service
       ansible.builtin.systemd:
         name: osbuild-composer.socket
-        state: restarted
+        state: started
+        enabled: true
+
+    - name: Start composer local worker service
+      ansible.builtin.systemd:
+        name: osbuild-local-worker.socket
+        state: started
         enabled: true
 
     - name: Ensure working directory
