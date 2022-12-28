@@ -10,5 +10,5 @@ distro = ""
 installation_device = "{{ rhel_installation_device }}"
 
 [customizations.fdo]
-manufacturing_server_url = "http://{{ manufacturing_server }}:8080"
+manufacturing_server_url = "http://{{ manufacturing_server }}:{{ manufacturing_port }}"
 diun_pub_key_insecure = "true"
