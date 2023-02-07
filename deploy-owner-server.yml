@@ -1,0 +1,15 @@
+- name: Install Owner Server
+  hosts: owner_server
+  become: true
+  gather_facts: true
+  vars:
+    copy_manufacturer_certs: false
+    localhost_manufacturing_server_certs_dir: "{{ playbook_dir }}/keys"
+    update_keys_certs: false
+  tasks:
+  - import_role:
+      name: community.fdo.setup_owner_server
+  - import_role:
+      name: community.fdo.copy_manufacturing_server_certs_to_owner_server
+  - import_role:
+      name: community.fdo.configure_owner_server

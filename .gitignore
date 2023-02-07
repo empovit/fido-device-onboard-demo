@@ -3,3 +3,4 @@
 *.qcow2
 keys/
 inventory.yml
+inventory/
