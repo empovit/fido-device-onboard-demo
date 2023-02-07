@@ -1,0 +1,15 @@
+- name: Install Owner Server
+  hosts: rendezvous_server
+  become: true
+  gather_facts: true
+  vars:
+    copy_manufacturer_certs: false
+    localhost_manufacturing_server_certs_dir: "{{ playbook_dir }}/keys"
+    update_cert: false
+  tasks:
+  - import_role:
+      name: community.fdo.setup_rendezvous_server
+  - import_role:
+      name: community.fdo.copy_manufacturing_server_certs_to_rendezvous_server
+  - import_role:
+      name: community.fdo.configure_rendezvous_server
