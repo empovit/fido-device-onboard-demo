@@ -25,11 +25,30 @@ The inventory must contain the following groups, configured to allow privileged 
 
 Password-less sudo must be configured on the hosts, and they must be able to talk to each other via SSH.
 
+## Initializing a device
+
+The device must support TPM (can be emulated in a VM).
+
+Boot into a RHEL for Edge disk image that has the following customizations
+
+```toml
+[customizations.fdo]
+manufacturing_server_url = "http://<manufacturing_server_ip>:8080"
+diun_pub_key_insecure = "true"
+```
+
+or add the following kernel arguments when booting
+
+```console
+fdo.manufacturing_server_url=http://<manufacturing_server_ip>:8080 fdo.diun_pub_key_insecure=true
+```
+
+
 ## Onboarding a device
 
 After the device has been initialized, it can be onboarded by copying its Ownership Voucher (OV) from the manufacturing server to the owner server.
 
-**Note**: This is not needed if the servers run on the same server.
+**Note**: This is not needed if the servers run on the same machine and share the filesystem.
 
 ```console
 ansible-playbook sync-vouchers.yml -i <inventory>
