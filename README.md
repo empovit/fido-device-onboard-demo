@@ -29,6 +29,8 @@ Password-less sudo must be configured on the hosts, and they must be able to tal
 
 After the device has been initialized, it can be onboarded by copying its Ownership Voucher (OV) from the manufacturing server to the owner server.
 
+**Note**: This is not needed if the servers run on the same server.
+
 ```console
 ansible-playbook sync-vouchers.yml -i <inventory>
 ```
