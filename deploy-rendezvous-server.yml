@@ -4,7 +4,7 @@
   gather_facts: true
   vars:
     copy_manufacturer_certs: false
-    localhost_manufacturing_server_certs_dir: "{{ playbook_dir }}/keys"
+    localhost_manufacturing_server_certs_dir: "{{ playbook_dir }}/keys/rendezvous"
     update_cert: false
   tasks:
   - import_role:
