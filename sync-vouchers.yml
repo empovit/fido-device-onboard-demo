@@ -1,0 +1,7 @@
+---
+- name: Copy Ownership Vouchers
+  hosts: owner_server
+  become: true
+  gather_facts: true
+  roles:
+    - community.fdo.copy_ownership_vouchers
