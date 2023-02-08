@@ -1,9 +1,0 @@
----
-bind: 0.0.0.0:8083
-device_specific_store_driver:
-  Directory:
-    path: {{ component_directory }}/device_specific_serviceinfo
-service_info:
-  {{ service_info | indent(width=2) }}
-service_info_auth_token: "{{ serviceinfo_api_token }}"
-admin_auth_token: "{{ serviceinfo_api_admin_token }}"

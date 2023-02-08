@@ -1,7 +1,5 @@
 collections:
-  - containers.podman
-  - community.general
   - ansible.posix
-  - name: https://github.com/ansible-collections/community.fdo.git
+  - name: https://github.com/empovit/community.fdo.git
     type: git
-    version: main
+    version: alpha
