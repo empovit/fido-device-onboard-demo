@@ -20,6 +20,4 @@
   gather_facts: true
   roles:
   - community.fdo.setup_owner_server
-  - name: community.fdo.configure_owner_server
-    vars:
-      serviceinfo_api_server_service_info_initial_user_sshkeys: "{{ lookup('file', sshkey_path) }}"
+  - community.fdo.configure_owner_server

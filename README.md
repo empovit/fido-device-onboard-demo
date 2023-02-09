@@ -12,7 +12,7 @@ You will need a machine (physical or virtual) with RHEL 9.x and a valid RHEL sub
 
 ```console
 ansible-playbook fdo-servers.yml -i <inventory> \
-  -e sshkey_path=<ssh_public_key> \
+  -e serviceinfo_api_server_service_info_initial_user_sshkeys=<ssh_public_key> \
   -e manufacturing_server_rendezvous_info_ip_address=<ip_address> \
   -e owner_onboarding_server_owner_addresses_ip_address=<ip_address>
 ```
