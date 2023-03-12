@@ -1,23 +1,54 @@
+- name: Generate keys and certificates
+  hosts: manufacturing_server
+  become: true
+  gather_facts: false
+  vars:
+    generated_certs_dir: /etc/fdo/temp_keys
+  roles:
+    - community.fdo.generate_keys_and_certificates
+  tasks:
+    - name: Fetch generated keys and certificates
+      ansible.posix.synchronize:
+        src: /etc/fdo/temp_keys
+        dest: "{{ playbook_dir }}"
+        mode: pull
+        checksum: true
+        rsync_timeout: 60
+
 - name: Set up manufacturing_server
   hosts: manufacturing_server
   become: true
   gather_facts: true
+  vars:
+    manufacturing_server_generate_keys_and_certificates: false
+    localhost_manufacturing_server_certs_dir: "{{ playbook_dir }}/temp_keys"
   roles:
-  - community.fdo.setup_manufacturing_server
-  - community.fdo.configure_manufacturing_server
+    - community.fdo.setup_manufacturing_server
+    - community.fdo.copy_manufacturing_server_certs_to_manufacturing_server
+    - community.fdo.configure_manufacturing_server
 
 - name: Set up rendezvous server
   hosts: rendezvous_server
   become: true
   gather_facts: true
+  vars:
+    copy_manufacturer_certs: false
+    update_cert: false
+    localhost_manufacturing_server_certs_dir: "{{ playbook_dir }}/temp_keys"
   roles:
-  - community.fdo.setup_rendezvous_server
-  - community.fdo.configure_rendezvous_server
+    - community.fdo.setup_rendezvous_server
+    - community.fdo.copy_manufacturing_server_certs_to_rendezvous_server
+    - community.fdo.configure_rendezvous_server
 
 - name: Set up owner server
   hosts: owner_server
   become: true
   gather_facts: true
+  vars:
+    copy_manufacturer_certs: false
+    update_keys_certs: false
+    localhost_manufacturing_server_certs_dir: "{{ playbook_dir }}/temp_keys"
   roles:
-  - community.fdo.setup_owner_server
-  - community.fdo.configure_owner_server
+    - community.fdo.setup_owner_server
+    - community.fdo.copy_manufacturing_server_certs_to_owner_server
+    - community.fdo.configure_owner_server
