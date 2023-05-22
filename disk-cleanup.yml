@@ -13,7 +13,6 @@
         do
           composer-cli compose delete $(echo $c | awk -F' ' '{print $1}') || true
         done
-      pipefail: true
       changed_when: false
 
     - name: Delete osbuild artifacts
@@ -21,3 +20,4 @@
         rm -rf /var/lib/osbuild-composer/artifacts/* 2> /dev/null || true;
         rm -rf /var/cache/osbuild-worker/osbuild-store/tmp/* 2> /dev/null || true;
         rm -rf /var/cache/osbuild-worker/osbuild-store/sources/org.osbuild.files/* 2> /dev/null || true
+      changed_when: false
