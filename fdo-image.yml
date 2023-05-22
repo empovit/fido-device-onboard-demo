@@ -18,7 +18,17 @@
         builder_compose_customizations: {}
         builder_compose_pkgs: []
 
+    #####################################################
     # THIS PART ISN'T CURRENTLY WORKING AS EXPECTED
+    # It produces an edge-commit instead of an edge-simplified-installer.
+    # In order to create a simplified installer manually,
+    # push the blueprint (e.g. fdo-rhel-for-edge-simplified) and run
+    # on the image_builder host:
+    # composer-cli compose start-ostree fdo-rhel-for-edge-simplified \
+    #   edge-simplified-installer \
+    #   --ref rhel/9/x86_64/edge \
+    #   --url http://localhost/rhel-for-edge/repo/
+    #####################################################
     # - name: Build FDO-enabled RHEL for Edge image
     #   ansible.builtin.import_role:
     #     name: infra.osbuild.builder

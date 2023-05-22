@@ -8,6 +8,7 @@
 
     - name: Delete finished composes
       ansible.builtin.shell: |
+        set -o pipefail
         IFS=$'\n' read -r -d '' -a compose_arr <<< $(composer-cli compose list)
         for c in "${compose_arr[@]}"
         do
