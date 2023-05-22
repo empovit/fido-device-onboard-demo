@@ -1,34 +1,36 @@
 ---
-- name: Generate an FDO-enabled RHEL for Edge image
+- name: Generate an FDO-enabled RHEL for Edge simplified installer
   hosts: image_builder
   become: true
   gather_facts: true
 
   tasks:
-    # - name: Set up OSBuild server
-    #   ansible.builtin.import_role:
-    #     name: infra.osbuild.setup_server
+    - name: Set up osbuild server
+      ansible.builtin.import_role:
+        name: infra.osbuild.setup_server
 
     - name: Build base RHEL for Edge image
       ansible.builtin.import_role:
         name: infra.osbuild.builder
       vars:
-        builder_compose_type: edge-container
+        builder_compose_type: edge-commit
         builder_blueprint_name: rhel-for-edge
         builder_compose_customizations: {}
         builder_compose_pkgs: []
 
+    # THIS PART ISN'T CURRENTLY WORKING AS EXPECTED
     # - name: Build FDO-enabled RHEL for Edge image
     #   ansible.builtin.import_role:
     #     name: infra.osbuild.builder
     #   vars:
+    #     # use the default value for builder_blueprint_ref
     #     builder_compose_type: edge-simplified-installer
     #     builder_blueprint_name: fdo-rhel-for-edge-simplified
+    #     manufacturing_server: "{{ groups['manufacturing_server'][0] }}"
+    #     manufacturing_server_host: "{{ hostvars[manufacturing_server].ansible_host | default(hostvars[manufacturing_server].inventory_hostname) }}"
     #     builder_compose_customizations:
     #       installation_device: /dev/vda
     #       fdo:
     #         manufacturing_server_url: "http://{{ manufacturing_server_host }}:8080"
     #         diun_pub_key_insecure: "true"
     #     builder_compose_pkgs: []
-        # builder_wait_compose_timeout: 2400
-        # builder_blueprint_ref: # use the default
