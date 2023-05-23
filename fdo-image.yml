@@ -6,11 +6,11 @@
 
   tasks:
     - name: Set up osbuild server
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: infra.osbuild.setup_server
 
     - name: Build base RHEL for Edge image
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: infra.osbuild.builder
       vars:
         builder_compose_type: edge-commit
@@ -30,12 +30,15 @@
     #   --url http://localhost/rhel-for-edge/repo/
     #####################################################
     # - name: Build FDO-enabled RHEL for Edge image
-    #   ansible.builtin.import_role:
+    #   ansible.builtin.include_role:
     #     name: infra.osbuild.builder
     #   vars:
     #     # use the default value for builder_blueprint_ref
     #     builder_compose_type: edge-simplified-installer
     #     builder_blueprint_name: fdo-rhel-for-edge-simplified
+    #     # repo_host: "{{ hostvars[inventory_hostname].ansible_host | default(hostvars[inventory_hostname].inventory_hostname) }}"
+    #     # builder_ostree_url: "http://{{ repo_host }}/rhel-for-edge/repo/" causes only 'fdo-rhel-for-edge-simplified-empty'
+    #     # to be created, which is invalid and results in "Unable to determine state of build, check osbuild-composer system logs"
     #     manufacturing_server: "{{ groups['manufacturing_server'][0] }}"
     #     manufacturing_server_host: "{{ hostvars[manufacturing_server].ansible_host | default(hostvars[manufacturing_server].inventory_hostname) }}"
     #     builder_compose_customizations:
