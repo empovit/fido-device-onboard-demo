@@ -4,46 +4,35 @@
   become: true
   gather_facts: true
 
+  vars:
+    blueprint_name: fdo
+    blueprint_version: "0.0.1"
+    compose_type: edge-simplified-installer
+
   tasks:
     - name: Set up osbuild server
       ansible.builtin.include_role:
         name: infra.osbuild.setup_server
 
-    - name: Build base RHEL for Edge image
+    - name: Build FDO-enabled simplified installer image
       ansible.builtin.include_role:
         name: infra.osbuild.builder
       vars:
-        builder_compose_type: edge-commit
-        builder_blueprint_name: rhel-for-edge
-        builder_compose_customizations: {}
+        builder_compose_type: "{{ compose_type }}"
+        builder_blueprint_name: "{{ blueprint_name }}"
+        builder_compose_customizations:
+          installation_device: /dev/vda
+          fdo:
+            manufacturing_server_url: "http://{{ manufacturing_server_host }}:8080"
+            diun_pub_key_insecure: "true"
         builder_compose_pkgs: []
 
-    #####################################################
-    # THIS PART ISN'T CURRENTLY WORKING AS EXPECTED
-    # It produces an edge-commit instead of an edge-simplified-installer.
-    # In order to create a simplified installer manually,
-    # push the blueprint (e.g. fdo-rhel-for-edge-simplified) and run
-    # on the image_builder host:
-    # composer-cli compose start-ostree fdo-rhel-for-edge-simplified \
-    #   edge-simplified-installer \
-    #   --ref rhel/9/x86_64/edge \
-    #   --url http://localhost/rhel-for-edge/repo/
-    #####################################################
-    # - name: Build FDO-enabled RHEL for Edge image
-    #   ansible.builtin.include_role:
-    #     name: infra.osbuild.builder
-    #   vars:
-    #     # use the default value for builder_blueprint_ref
-    #     builder_compose_type: edge-simplified-installer
-    #     builder_blueprint_name: fdo-rhel-for-edge-simplified
-    #     # repo_host: "{{ hostvars[inventory_hostname].ansible_host | default(hostvars[inventory_hostname].inventory_hostname) }}"
-    #     # builder_ostree_url: "http://{{ repo_host }}/rhel-for-edge/repo/" causes only 'fdo-rhel-for-edge-simplified-empty'
-    #     # to be created, which is invalid and results in "Unable to determine state of build, check osbuild-composer system logs"
-    #     manufacturing_server: "{{ groups['manufacturing_server'][0] }}"
-    #     manufacturing_server_host: "{{ hostvars[manufacturing_server].ansible_host | default(hostvars[manufacturing_server].inventory_hostname) }}"
-    #     builder_compose_customizations:
-    #       installation_device: /dev/vda
-    #       fdo:
-    #         manufacturing_server_url: "http://{{ manufacturing_server_host }}:8080"
-    #         diun_pub_key_insecure: "true"
-    #     builder_compose_pkgs: []
+    - name: Download simplified installer image
+      ansible.builtin.get_url:
+        dest: "{{ playbook_dir }}"
+        url: "http://{{ builder_host }}/{{ blueprint_name }}/images/{{ blueprint_version }}/{{ blueprint_name }}_{{ compose_type }}.iso"
+        mode: 644
+      vars:
+        builder_host: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
+      when: download_image | default(false) | bool
+      delegate_to: localhost

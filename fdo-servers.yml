@@ -50,17 +50,16 @@
     copy_manufacturer_certs: false
     update_keys_certs: false
     localhost_manufacturing_server_certs_dir: "{{ playbook_dir }}/keys"
-    owner_onboarding_server_owner_addresses_ip_address: "{{ hostvars[inventory_hostname].ansible_host | default(hostvars[inventory_hostname].inventory_hostname) }}"
+    owner_onboarding_server_owner_addresses_ip_address: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
     serviceinfo_api_server_config: |-
       initial_user:
         username: admin
         sshkeys:
         - "{{ lookup('file', '/home/vit/.ssh/id_ed25519.pub') }}"
       commands:
-      - command: /bin/bash
+      - command: touch
         args:
-        - touch
-        - /var/home/admin/fdo-inboard-success
+        - /fdo-inboard-success
         return_stdout: true
         return_stderr: true
       diskencryption_clevis:
