@@ -1,0 +1,23 @@
+---
+argument_specs:
+  main:
+    short_description: The main entry point for the latest installer role.
+    options:
+      latest_installer_blueprint_name:
+        type: "str"
+        required: true
+        description: "The name of the osbuild blueprint"
+
+      latest_installer_compose_type:
+        type: "str"
+        required: true
+        choices:
+          - edge-installer
+          - edge-simplified-installer
+          - image-installer
+        description: "The type of the osbuild compose"
+
+      latest_installer_dest:
+        type: "str"
+        required: true
+        description: "Destination directory on the local host the image will be downloaded to"

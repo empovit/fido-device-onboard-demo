@@ -5,34 +5,31 @@
   gather_facts: true
 
   vars:
-    blueprint_name: fdo
-    blueprint_version: "0.0.1"
     compose_type: edge-simplified-installer
 
   tasks:
-    - name: Set up osbuild server
-      ansible.builtin.include_role:
-        name: infra.osbuild.setup_server
+    # - name: Set up osbuild server
+    #   ansible.builtin.include_role:
+    #     name: infra.osbuild.setup_server
 
-    - name: Build FDO-enabled simplified installer image
-      ansible.builtin.include_role:
-        name: infra.osbuild.builder
-      vars:
-        builder_compose_type: "{{ compose_type }}"
-        builder_blueprint_name: "{{ blueprint_name }}"
-        builder_compose_customizations:
-          installation_device: /dev/vda
-          fdo:
-            manufacturing_server_url: "http://{{ manufacturing_server_host }}:8080"
-            diun_pub_key_insecure: "true"
-        builder_compose_pkgs: []
+    # - name: Build FDO-enabled simplified installer image
+    #   ansible.builtin.include_role:
+    #     name: infra.osbuild.builder
+    #   vars:
+    #     builder_compose_type: "{{ compose_type }}"
+    #     builder_blueprint_name: "{{ blueprint_name }}"
+    #     builder_compose_customizations:
+    #       installation_device: /dev/vda
+    #       fdo:
+    #         manufacturing_server_url: "http://{{ manufacturing_server_host }}:8080"
+    #         diun_pub_key_insecure: "true"
+    #     builder_compose_pkgs: []
 
-    - name: Download simplified installer image
-      ansible.builtin.get_url:
-        dest: "{{ playbook_dir }}"
-        url: "http://{{ builder_host }}/{{ blueprint_name }}/images/{{ blueprint_version }}/{{ blueprint_name }}_{{ compose_type }}.iso"
-        mode: 644
+    - name: Download latest installer image to local host
+      ansible.builtin.include_role:
+        name: latest_installer
       vars:
-        builder_host: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
-      when: download_image | default(false) | bool
-      delegate_to: localhost
+        latest_installer_blueprint_name: "{{ blueprint_name }}"
+        latest_installer_compose_type: "{{ compose_type }}"
+        latest_installer_dest: "{{ playbook_dir }}"
+      when: download_image | bool | default(false)

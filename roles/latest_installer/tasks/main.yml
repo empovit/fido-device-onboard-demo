@@ -1,0 +1,21 @@
+---
+- name: List available installer versions
+  ansible.builtin.find:
+    paths: "/var/www/html/{{ latest_installer_blueprint_name }}/images/"
+    file_type: directory
+    use_regex: true
+    patterns: \d+\.\d+\.\d+
+  register: latest_installer_image_versions
+
+- name: Fail if there are no images for the blueprint
+  ansible.builtin.fail:
+    msg: "No installer images found for blueprint '{{ latest_installer_blueprint_name }}'"
+  when: not latest_installer_image_versions.files
+
+- name: Download latest version
+  ansible.posix.synchronize:
+    dest: "{{ latest_installer_dest }}"
+    src: "{{ latest_installer_image_dir }}/{{ latest_installer_blueprint_name }}_{{ latest_installer_compose_type }}.iso"
+    mode: pull
+  vars:
+    latest_installer_image_dir: "{{ latest_installer_image_versions.files | sort(attribute='path') | map(attribute='path') | last }}"
