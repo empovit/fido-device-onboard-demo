@@ -1,12 +1,16 @@
 # FIDO Device Onboard (FDO) based on RHEL for Edge
 
-This repository contains Ansible playbooks for setting up a [FIDO Device Onboard (FDO)](https://fidoalliance.org/specifications/download-iot-specifications/) environment, using the [Fedora IOT implementation](https://github.com/fedora-iot/fido-device-onboard-rs/) of the FDO specification and the [Ansible community collection for FDO](https://github.com/ansible-collections/community.fdo).
+This repository contains Ansible playbooks for demoing
+[FIDO Device Onboard (FDO)](https://fidoalliance.org/specifications/download-iot-specifications/) using the
+[Fedora IOT implementation](https://github.com/fedora-iot/fido-device-onboard-rs/) of the specification.
+It relies on the official collections for [deploying FDO servers](https://github.com/ansible-collections/community.fdo)
+and [building FDO-enabled installer images](https://github.com/redhat-cop/infra.osbuild).
 
 Useful links
 
 * [How to onboard edge devices at scale with FDO and Linux](https://www.redhat.com/sysadmin/edge-device-onboarding-fdo)
 
-## Setting up servers
+## Setting up FDO Servers
 
 You will need a machine (physical or virtual) with RHEL 9.x and a valid RHEL subscription.
 
@@ -23,9 +27,9 @@ The inventory must contain the following groups, configured to allow privileged 
 * owner_server
 * manufacturing_server
 
-Password-less sudo must be configured on the hosts, and they must be able to talk to each other via SSH.
+Password-less sudo must be configured on the hosts.
 
-## Initializing a device
+## Initializing a Device
 
 The device must support TPM (can be emulated in a VM).
 
@@ -43,8 +47,21 @@ or add the following kernel arguments when booting
 fdo.manufacturing_server_url=http://<manufacturing_server_ip>:8080 fdo.diun_pub_key_insecure=true
 ```
 
+## Building an FDO-enabled Installer Image
 
-## Onboarding a device
+Alternatively, you can build a simplified RHEL for Edge installer image that already includes the FDO customizations.
+
+```console
+ansible-playbook fdo-image.yml -i <inventory> -e download_image=true -e blueprint_name=fdo
+```
+
+You can change the installation device via
+
+```console
+-e installation_device=/dev/sda
+```
+
+## Onboarding a Device
 
 After the device has been initialized, it can be onboarded by copying its Ownership Voucher (OV) from the manufacturing server to the owner server.
 

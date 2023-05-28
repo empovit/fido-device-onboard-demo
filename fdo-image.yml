@@ -5,25 +5,26 @@
   gather_facts: true
 
   vars:
+    installation_device: /dev/vda
     compose_type: edge-simplified-installer
 
   tasks:
-    # - name: Set up osbuild server
-    #   ansible.builtin.include_role:
-    #     name: infra.osbuild.setup_server
+    - name: Set up osbuild server
+      ansible.builtin.include_role:
+        name: infra.osbuild.setup_server
 
-    # - name: Build FDO-enabled simplified installer image
-    #   ansible.builtin.include_role:
-    #     name: infra.osbuild.builder
-    #   vars:
-    #     builder_compose_type: "{{ compose_type }}"
-    #     builder_blueprint_name: "{{ blueprint_name }}"
-    #     builder_compose_customizations:
-    #       installation_device: /dev/vda
-    #       fdo:
-    #         manufacturing_server_url: "http://{{ manufacturing_server_host }}:8080"
-    #         diun_pub_key_insecure: "true"
-    #     builder_compose_pkgs: []
+    - name: Build FDO-enabled simplified installer image
+      ansible.builtin.include_role:
+        name: infra.osbuild.builder
+      vars:
+        builder_compose_type: "{{ compose_type }}"
+        builder_blueprint_name: "{{ blueprint_name }}"
+        builder_compose_customizations:
+          installation_device: "{{ installation_device }}"
+          fdo:
+            manufacturing_server_url: "http://{{ manufacturing_server_host }}:8080"
+            diun_pub_key_insecure: "true"
+        builder_compose_pkgs: []
 
     - name: Download latest installer image to local host
       ansible.builtin.include_role:
