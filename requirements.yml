@@ -1,4 +1,8 @@
 collections:
-  - containers.podman
-  - community.general
   - ansible.posix
+  - name: https://github.com/ansible-collections/community.fdo.git
+    type: git
+    version: main
+  - name: https://github.com/redhat-cop/infra.osbuild
+    type: git
+    version: main

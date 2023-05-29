@@ -1,121 +1,131 @@
 # FIDO Device Onboard (FDO) based on RHEL for Edge
 
-This repository contains Ansible playbooks for setting up a [FIDO Device Onboard (FDO)](https://fidoalliance.org/specifications/download-iot-specifications/) environment, using the [Fedora IOT implementation](https://github.com/fedora-iot/fido-device-onboard-rs/) of the FDO specification.
-
-As part of device onboarding, the operating system (OS) used for FDO initialization is replaced by an [OS distributed as a container image](https://coreos.github.io/rpm-ostree/container/).
+This repository contains Ansible playbooks for demoing
+[FIDO Device Onboard (FDO)](https://fidoalliance.org/specifications/download-iot-specifications/) using the
+[Fedora IOT implementation](https://github.com/fedora-iot/fido-device-onboard-rs/) of the specification.
+It relies on the official collections for [deploying FDO servers](https://github.com/ansible-collections/community.fdo)
+and [building FDO-enabled installer images](https://github.com/redhat-cop/infra.osbuild).
 
 Useful links
 
 * [How to onboard edge devices at scale with FDO and Linux](https://www.redhat.com/sysadmin/edge-device-onboarding-fdo)
-* [RHEL for Edge Image builder demo](https://github.com/kwozyman/rhel-edge-demo/tree/containers#readme)
 
-## Setting up servers
+## FDO Keys and Certificates
 
-You will need machines (physical or virtual) with an operating system that provides the `fdo-*` packages (`fdo-admin-cli` etc.), e.g. RHEL 9.x.
+FDO servers require a number of keys and certificates. Those can be generated using the `community.fdo.generate_keys_and_certificates` role of the [Community FDO collection](https://github.com/ansible-collections/community.fdo) either locally or on a remote host.
 
+A playbook for generating keys and certificates on a remote RHEL 9.x host and copying them to local host is included in this repo.
+It expects a `certificate_generator` host group in the inventory. Example in YAML format:
+
+```yaml
+certificate_generator:
+  hosts:
+    rhel9:
+      ansible_user: admin
+      ansible_password: admin
+      ansible_become_user: root
+      ansible_become_pass: admin
+      ansible_host: 192.168.122.24
 ```
-ansible-playbook fdo-servers.yml -i inventory.yml -e admin_ssh_key_file=~/.ssh/id_ed25519.pub
+
+Running the playbook:
+
+```console
+ansible-playbook fdo-certs.yml -i <inventory>
 ```
 
-The `inventory.yml` must contain the following hosts:
+## Setting up FDO Servers
 
-* keys-generator
-* manufacturing
-* owner-onboarding
-* rendezvous
-* serviceinfo-api
+You will need a host (physical or virtual machine) with RHEL 9.x and a valid RHEL subscription.
 
-You can use the same machine to run multiple components of the FDO setup by pointing the corresponding host roles to the same Ansible host in the inventory. Example:
+The inventory must include the following groups configured to allow privileged (Ansible `become`) access to the hosts.
 
-```
+* rendezvous_server
+* owner_server
+* manufacturing_server
+
+The configuration must include _IP addresses_ of the hosts. Example in YAML format:
+
+```yaml
+rendezvous_server:
+  hosts:
+    rendezvous:
+      ansible_user: admin
+      ansible_password: admin
+      ansible_become_user: root
+      ansible_become_pass: admin
+      ansible_host: 192.168.122.20
+owner_server:
+  hosts:
+    owner:
+      ansible_user: admin
+      ansible_password: admin
+      ansible_become_user: root
+      ansible_become_pass: admin
+      ansible_host: 192.168.122.21
+manufacturing_server:
+  hosts:
     manufacturing:
-      ansible_user: root
-      ansible_host: 192.168.122.204
-    owner-onboarding:
-      ansible_user: root
-      ansible_host: 192.168.122.204
-    <and so on>
+      ansible_user: admin
+      ansible_password: admin
+      ansible_become_user: root
+      ansible_become_pass: admin
+      ansible_host: 192.168.122.22
 ```
 
-### Key generation in a container
+**Note:** You may run all FDO servers on a single host for demo purposes, in that case use the same IP address value for all `ansible_host` variables.
 
-If you want to use your local machine to generate FDO keys and certificates, but `fdo-admin-tool` is not available for your system, use a container.
+Passwordless `sudo` must be [configured](https://developers.redhat.com/blog/2018/08/15/how-to-enable-sudo-on-rhel#using_sudo_without_a_password) on the hosts.
 
-Start a container as follows
+Running the playbook:
 
-```
-podman run --rm -d --entrypoint /usr/bin/sleep --name keys-generator rockylinux:9 infinity
-```
-
-and then add it to the inventory with a [podman connection](https://docs.ansible.com/ansible/latest/collections/containers/podman/podman_connection.html) as follows:
-
-```
-    keys-generator:
-      ansible_connection: containers.podman.podman
-      ansible_host: "{{ inventory_hostname }}"
-      ansible_user: root
+```console
+ansible-playbook fdo-servers.yml -i <inventory> \
+  -e fdo_admin_ssh_key=<ssh_public_key> \
+  -e fdo_admin_password=<password>
 ```
 
-## Building a RHEL for Edge image
+## Initializing a Device
 
-You will need a RHEL 9.x machine to build a simplified RHEL for Edge installer image. Add the host to the inventory as an `image-builder`, e.g.:
+**Important:** For this demo to work "as is" the device must support TPM, which can be also emulated in a VM.
 
-```
-    image-builder:
-      ansible_user: root
-      ansible_host: 192.168.122.204
-```
+On first boot, the device will call a manufacturing server for initialization.
+There are multiple ways to specify the manufacturing server URL.
 
-Run the `image.yml` playbook. Optionally, the resulting image will be downloaded to you local (Ansible controller) host.
+1. Add the following kernel arguments when booting the device for the first time, in the console or using kickstart (e.g. when booting via PXE):
 
-```
-ansible-playbook image.yml -i inventory.yml -e root_ssh_key_file=~/.ssh/id_ed25519.pub -e admin_password=<password> [-e download_image=true]
-```
+  ```console
+  fdo.manufacturing_server_url=http://<manufacturing_server>:8080 fdo.diun_pub_key_insecure=true
+  ```
 
-By default, an FDO image built by the playbook will use the IPv4 address of a `manufacturing` host in the inventory. You can override this with `-e manufacturing_server=<host>`.
+2. Or build an installer image that has the required FDO customizations baked in:
 
-## Building an OS container image
+  ```console
+  ansible-playbook fdo-image.yml -i <inventory> \
+    -e download_image=true \
+    -e blueprint_name=fdo \
+    -e manufacturing_server_host=<host>
+  ```
 
-**NOTICE:** For simplicity and performance, the OS container image is built on top of the same RHEL for Edge base image as the FDO image. Also, we make it available through a container image registry on the image builder machine. In real life though, the FDO image belongs in manufacturing while the OS container image belongs in owner onboarding and is likely to be used to run a custom OS on a device onboarded by FDO.
+  Then you can boot the device (e.g. a VM) into the installer image. Example:
 
-## Initializing a device
-
-The image built in the previous step (`<id>-simplified-installer.iso`) can now be used to boot a device for device initialization.
-
-For example, a KVM virtual machine:
-
-```
-sudo virt-install \
+  ```console
+  sudo virt-install \
     --boot uefi --network default \
-    --name fdo-device-vm --memory 2048 --vcpus 2 \
-    --disk size=20,path=fdo-device-vm.qcow2 \
-    --cdrom <id>-simplified-installer.iso \
-    --os-variant rhel9.0 --tpm backend.type=emulator,backend.version=2.0,model=tpm-tis
+    --name fdo-device --memory 2048 --vcpus 2 \
+    --disk size=20,path=fdo-device.qcow2 \
+    --os-variant rhel9.2 \
+    --tpm backend.type=emulator,backend.version=2.0,model=tpm-tis \
+    --cdrom fdo_edge-simplified-installer.iso
+  ```
+
+## Onboarding a Device
+
+After the device has been initialized, it can be booted and automatically onboarded by copying
+its Ownership Voucher (OV) from the manufacturing server to the owner server.
+
+**Note**: There is no need to copy ownership vouchers if the servers run on the same host and share the filesystem.
+
+```console
+ansible-playbook sync-vouchers.yml -i <inventory>
 ```
-
-## Onboarding a device
-
-After the device has been initialized, it can be onboarded by copying its Ownership Voucher (OV) from the _/root/fdo/manufacturing_server/owner_vouchers_ directory on the `manufacturing` server to the _/root/fdo/owner_onboarding_server/owner_vouchers_ directory on the `owner-onboarding` server.
-
-This can be done either manually, or by running
-
-```
-ansible-playbook sync-ownership-vouchers.yml -i inventory.yml
-```
-
-## Troubleshooting
-
-If you get low on the disk space, clean up osbuild temporary artifacts.
-
-```
-/var/lib/osbuild-composer/artifacts/
-/var/cache/osbuild-worker/osbuild-store/tmp/
-/var/cache/osbuild-worker/osbuild-store/sources/org.osbuild.files/
-```
-
-Also, find and delete unnecessary large files, e.g.
-
-```
-find / -type f -size +100M 2> /dev/null
-```
-

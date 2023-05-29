@@ -1,150 +1,60 @@
----
-- name: Set common server variables
+- name: Set up manufacturing_server
+  hosts: manufacturing_server
+  become: true
   gather_facts: true
-  hosts:
-    - keys-generator
-    - manufacturing
-    - owner-onboarding
-    - rendezvous
-    - serviceinfo-api
-
-  tasks:
-    - ansible.builtin.set_fact:
-        fdo_working_directory: "{{ ansible_env.HOME}}/fdo"
-        shared_keys_directory: "{{ playbook_dir }}/keys"
-        remote_keys: false
-
-- name: Generate keys/certificates and copy to a shared directory
-  gather_facts: false
-  hosts: keys-generator
-
-  pre_tasks:
-    - ansible.builtin.set_fact:
-        keys_directory: "{{ fdo_working_directory }}/keys"
-
+  vars:
+    manufacturing_server_generate_keys_and_certificates: false
+    rendezvous_server: "{{ groups['rendezvous_server'][0] }}"
+    manufacturing_server_rendezvous_info_ip_address: "{{ hostvars[rendezvous_server].ansible_host | default(hostvars[rendezvous_server].inventory_hostname) }}"
+    localhost_manufacturing_server_certs_dir: "{{ playbook_dir }}/keys"
   roles:
-    - role: cryptographic_keys
-
-  tasks:
-    - name: Ensure that the shared keys directory exists
-      ansible.builtin.file:
-        path: "{{ shared_keys_directory }}"
-        state: directory
-      delegate_to: localhost
-
-    - name: List keys/certificates
-      ansible.builtin.find:
-        paths: "{{ keys_directory }}"
-        recurse: no
-      register: _key_files
-      delegate_to: keys-generator
-
-    - name: Copy generated keys/certificates into the shared directory
-      ansible.builtin.fetch:
-        src: "{{ item }}"
-        dest: "{{ shared_keys_directory }}/"
-        flat: true
-      with_items: "{{ _key_files | community.general.json_query('files[*].path') }}"
-
-- name: Set up manufacturing server
-  gather_facts: false
-  hosts: manufacturing
-
-  roles:
-    - role: server_setup
-      vars:
-        component_name: manufacturing-server
-        rendezvous_host: "{{ hostvars['rendezvous'].ansible_host | default(hostvars['rendezvous'].inventory_hostname) }}"
-        subdirectories:
-          - manufacturing_sessions
-          - owner_vouchers
-          - manufacturer_keys
-        keys:
-          - diun_key.der
-          - diun_cert.pem
-          - manufacturer_cert.pem
-          - manufacturer_key.der
-          - owner_cert.pem
-          - device_ca_key.der
-          - device_ca_cert.pem
-        keys_directory: "{{ shared_keys_directory }}"
+    - community.fdo.setup_manufacturing_server
+    - community.fdo.copy_manufacturing_server_certs_to_manufacturing_server
+    - community.fdo.configure_manufacturing_server
 
 - name: Set up rendezvous server
-  gather_facts: false
-  hosts: rendezvous
-  roles:
-    - role: server_setup
-      vars:
-        component_name: rendezvous-server
-        subdirectories:
-          - rendezvous_registered
-          - rendezvous_sessions
-        keys:
-          - manufacturer_cert.pem
-        keys_directory: "{{ shared_keys_directory }}"
-
-- name: Set up serviceinfo-api server
+  hosts: rendezvous_server
+  become: true
   gather_facts: true
-  hosts: serviceinfo-api
-
-  pre_tasks:
-    - ansible.builtin.set_fact:
-        serviceinfo_api_token: "{{ lookup('ansible.builtin.password', '/dev/null') }}"
-        serviceinfo_api_admin_token: "{{ lookup('ansible.builtin.password', '/dev/null') }}"
-        image_builder_server: "{{ hostvars['image-builder'].ansible_host | default(hostvars['image-builder'].inventory_hostname) }}"
-        serviceinfo_api_storage_dir: "{{ fdo_working_directory }}/serviceinfo_api_server"
-
+  vars:
+    copy_manufacturer_certs: false
+    update_cert: false
+    localhost_manufacturing_server_certs_dir: "{{ playbook_dir }}/keys"
   roles:
-    - role: serviceinfo_api
-    - role: server_setup
-      vars:
-        component_name: serviceinfo-api-server
-        packages:
-          - fdo-owner-onboarding-server
-        # Pull an OS container image and switch over to that OS upon onboarding
-        service_info: |
-          initial_user:
-            username: admin
-            sshkeys:
-            - "{{ lookup('file', admin_ssh_key_file )}}"
-          files:
-          - path: /root/container-switch.sh
-            source_path: {{ serviceinfo_api_storage_dir }}/scripts/container-switch.sh
-          - path: /etc/containers/registries.conf.d/003-r4e.conf
-            source_path: {{ serviceinfo_api_storage_dir }}/registries.conf.d/003-r4e.conf
-          commands:
-          - command: /bin/bash
-            args:
-            - /root/container-switch.sh
-            - ostree-unverified-registry:{{ image_builder_server }}:5000/r4e:base
-            return_stdout: true
-            return_stderr: true
-          diskencryption_clevis:
-          - disk_label: /dev/vda4
-            binding:
-              pin: tpm2
-              config: "{}"
-            reencrypt: true
-          additional_serviceinfo: ~
-        subdirectories:
-          - device_specific_serviceinfo
-        keys_directory: "{{ shared_keys_directory }}"
+    - community.fdo.setup_rendezvous_server
+    - community.fdo.copy_manufacturing_server_certs_to_rendezvous_server
+    - community.fdo.configure_rendezvous_server
 
-- name: Set up owner-onboarding server
+- name: Set up owner server
+  hosts: owner_server
+  become: true
   gather_facts: true
-  hosts: owner-onboarding
+  vars:
+    copy_manufacturer_certs: false
+    update_keys_certs: false
+    localhost_manufacturing_server_certs_dir: "{{ playbook_dir }}/keys"
+    owner_onboarding_server_owner_addresses_ip_address: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
+    fdo_disk_label: /dev/vda4
+    serviceinfo_api_server_config: |-
+      initial_user:
+        username: admin
+        password: "{{ fdo_admin_password }}"
+        sshkeys:
+        - "{{ fdo_admin_ssh_key }}"
+      commands:
+      - command: touch
+        args:
+        - /fdo-onboard-success
+        return_stdout: true
+        return_stderr: true
+      diskencryption_clevis:
+      - disk_label: "{{ fdo_disk_label }}"
+        binding:
+          pin: tpm2
+          config: "{}"
+        reencrypt: true
+      additional_serviceinfo: ~
   roles:
-    - role: server_setup
-      vars:
-        component_name: owner-onboarding-server
-        serviceinfo_api_host: "{{ hostvars['serviceinfo-api'].ansible_host | default(hostvars['serviceinfo-api'].inventory_hostname) }}"
-        serviceinfo_api_token: "{{ hostvars['serviceinfo-api'].serviceinfo_api_token }}"
-        owner_host: "{{ hostvars['owner-onboarding'].ansible_host | default(hostvars['owner-onboarding'].inventory_hostname) }}"
-        subdirectories:
-          - owner_onboarding_sessions
-          - owner_vouchers
-        keys:
-          - device_ca_cert.pem
-          - owner_key.der
-          - owner_cert.pem
-        keys_directory: "{{ shared_keys_directory }}"
+    - community.fdo.setup_owner_server
+    - community.fdo.copy_manufacturing_server_certs_to_owner_server
+    - community.fdo.configure_owner_server
