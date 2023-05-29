@@ -1,20 +1,3 @@
-- name: Generate keys and certificates
-  hosts: certificate_generator
-  become: true
-  gather_facts: false
-  vars:
-    generated_certs_dir: /etc/fdo/keys
-  roles:
-    - community.fdo.generate_keys_and_certificates
-  tasks:
-    - name: Fetch generated keys and certificates
-      ansible.posix.synchronize:
-        src: /etc/fdo/keys/
-        dest: "{{ playbook_dir }}/keys/"
-        mode: pull
-        checksum: true
-        rsync_timeout: 60
-
 - name: Set up manufacturing_server
   hosts: manufacturing_server
   become: true
@@ -51,11 +34,13 @@
     update_keys_certs: false
     localhost_manufacturing_server_certs_dir: "{{ playbook_dir }}/keys"
     owner_onboarding_server_owner_addresses_ip_address: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
+    fdo_disk_label: /dev/vda4
     serviceinfo_api_server_config: |-
       initial_user:
         username: admin
+        password: "{{ fdo_admin_password }}"
         sshkeys:
-        - "{{ lookup('file', '/home/vit/.ssh/id_ed25519.pub') }}"
+        - "{{ fdo_admin_ssh_key }}"
       commands:
       - command: touch
         args:
@@ -63,7 +48,7 @@
         return_stdout: true
         return_stderr: true
       diskencryption_clevis:
-      - disk_label: /dev/vda4
+      - disk_label: "{{ fdo_disk_label }}"
         binding:
           pin: tpm2
           config: "{}"

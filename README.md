@@ -14,24 +14,56 @@ Useful links
 
 You will need a machine (physical or virtual) with RHEL 9.x and a valid RHEL subscription.
 
-```console
-ansible-playbook fdo-servers.yml -i <inventory> \
-  -e serviceinfo_api_server_service_info_initial_user_sshkeys=<ssh_public_key> \
-  -e manufacturing_server_rendezvous_info_ip_address=<ip_address> \
-  -e owner_onboarding_server_owner_addresses_ip_address=<ip_address>
-```
-
-The inventory must contain the following groups, configured to allow privileged (Ansible `become`) access to the hosts:
+The inventory must contain the following groups, configured to allow privileged (Ansible `become`) access to the hosts.
 
 * rendezvous_server
 * owner_server
 * manufacturing_server
 
-Password-less sudo must be configured on the hosts.
+The configuration must include _IP addresses_ of the hosts. Example in the YAML format:
+
+```yaml
+rendezvous_server:
+  hosts:
+    rendezvous:
+      ansible_user: admin
+      ansible_password: admin
+      ansible_become_user: root
+      ansible_become_pass: admin
+      ansible_host: 192.168.122.20
+owner_server:
+  hosts:
+    owner:
+      ansible_user: admin
+      ansible_password: admin
+      ansible_become_user: root
+      ansible_become_pass: admin
+      ansible_host: 192.168.122.21
+manufacturing_server:
+  hosts:
+    manufacturing:
+      ansible_user: admin
+      ansible_password: admin
+      ansible_become_user: root
+      ansible_become_pass: admin
+      ansible_host: 192.168.122.22
+```
+
+**Note:** You may run all FDO servers on a single machine for demo purposes, in that case use the same IP address value for all `ansible_host` variables.
+
+Also, password-less sudo must be configured on the hosts.
+
+```console
+ansible-playbook fdo-servers.yml -i <inventory> \
+  -e fdo_admin_ssh_key=<ssh_public_key> \
+  -e fdo_admin_password=<password>
+```
 
 ## Initializing a Device
 
-The device must support TPM (can be emulated in a VM).
+**Important:** For this demo to work "as is" the device must support TPM (can be emulated in a VM).
+
+On first boot, the device will call a manufacturing server for initialization. There are multiple ways to
 
 Boot into a RHEL for Edge disk image that has the following customizations
 
