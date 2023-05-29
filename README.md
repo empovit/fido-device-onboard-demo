@@ -95,7 +95,7 @@ There are multiple ways to specify the manufacturing server URL.
 1. Add the following kernel arguments when booting the device for the first time, in the console or using kickstart (e.g. when booting via PXE):
 
   ```console
-  fdo.manufacturing_server_url=http://<manufacturing_server_ip>:8080 fdo.diun_pub_key_insecure=true
+  fdo.manufacturing_server_url=http://<manufacturing_server>:8080 fdo.diun_pub_key_insecure=true
   ```
 
 2. Or build an installer image that has the required FDO customizations baked in:
