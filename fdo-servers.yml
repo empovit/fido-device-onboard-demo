@@ -44,7 +44,7 @@
       commands:
       - command: touch
         args:
-        - /fdo-inboard-success
+        - /fdo-onboard-success
         return_stdout: true
         return_stderr: true
       diskencryption_clevis:
