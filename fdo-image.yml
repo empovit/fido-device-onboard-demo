@@ -10,11 +10,11 @@
 
   tasks:
     - name: Set up osbuild server
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: infra.osbuild.setup_server
 
     - name: Build FDO-enabled simplified installer image
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: infra.osbuild.builder
       vars:
         builder_compose_type: "{{ compose_type }}"
@@ -27,10 +27,8 @@
         builder_compose_pkgs: []
 
     - name: Download latest installer image to local host
-      ansible.builtin.include_role:
-        name: latest_installer
-      vars:
-        latest_installer_blueprint_name: "{{ blueprint_name }}"
-        latest_installer_compose_type: "{{ compose_type }}"
-        latest_installer_dest: "{{ playbook_dir }}"
+      ansible.posix.synchronize:
+        dest: "{{ playbook_dir }}"
+        src: "{{ builder_image_path }}"
+        mode: pull
       when: download_image | bool | default(false)

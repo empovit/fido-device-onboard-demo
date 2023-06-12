@@ -1,6 +1,6 @@
 ---
 - name: Generate FDO keys and certificates on a remote host
-  ansible.builtin.include_role:
+  ansible.builtin.import_role:
     name: community.fdo.generate_keys_and_certificates
   vars:
     generated_certs_dir: "{{ keys_and_certificates_generation_dir }}"

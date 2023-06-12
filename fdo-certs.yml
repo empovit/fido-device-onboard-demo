@@ -6,7 +6,7 @@
 
   tasks:
     - name: Generate and download keys and certificates
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: keys_and_certificates
       vars:
         keys_and_certificates_dest: "{{ playbook_dir }}/keys/"
