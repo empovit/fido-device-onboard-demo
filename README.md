@@ -14,8 +14,20 @@ Useful links
 
 FDO servers require a number of keys and certificates. Those can be generated using the `community.fdo.generate_keys_and_certificates` role of the [Community FDO collection](https://github.com/ansible-collections/community.fdo) either locally or on a remote host.
 
-A playbook for generating keys and certificates on a remote RHEL 9.x host and copying them to local host is included in this repo.
-It expects a `certificate_generator` host group in the inventory. Example in YAML format:
+A playbook for generating keys and certificates locally is included in this repo.
+
+```console
+ansible-playbook fdo-certs-local.yml
+```
+
+If FDO packages cannot be installed on your Ansible controller, you can generate the keys and certificates on a remote RHEL 9.x
+host and copy them to local host.
+
+```console
+ansible-playbook fdo-certs-remote.yml -i <inventory>
+```
+
+The playbook expects a `certificate_generator` host group in the inventory. Example in YAML format:
 
 ```yaml
 certificate_generator:
@@ -26,12 +38,6 @@ certificate_generator:
       ansible_become_user: root
       ansible_become_pass: admin
       ansible_host: 192.168.122.24
-```
-
-Running the playbook:
-
-```console
-ansible-playbook fdo-certs.yml -i <inventory>
 ```
 
 ## Setting up FDO Servers
@@ -103,7 +109,6 @@ There are multiple ways to specify the manufacturing server URL.
   ```console
   ansible-playbook fdo-image.yml -i <inventory> \
     -e download_image=true \
-    -e blueprint_name=fdo \
     -e manufacturing_server_host=<host>
   ```
 
@@ -116,7 +121,7 @@ There are multiple ways to specify the manufacturing server URL.
     --disk size=20,path=fdo-device.qcow2 \
     --os-variant rhel9.2 \
     --tpm backend.type=emulator,backend.version=2.0,model=tpm-tis \
-    --cdrom fdo_edge-simplified-installer.iso
+    --cdrom fdo-demo_edge-simplified-installer.iso
   ```
 
 ## Onboarding a Device

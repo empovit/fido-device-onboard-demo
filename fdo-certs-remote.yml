@@ -1,0 +1,19 @@
+---
+- name: Generate FDO keys and certificates
+  hosts: certificate_generator
+  become: true
+  gather_facts: true
+
+  vars:
+    generated_certs_dir: /etc/fdo/keys/
+
+  tasks:
+    - name: Generate FDO keys and certificates on a remote host
+      ansible.builtin.import_role:
+        name: community.fdo.generate_keys_and_certificates
+
+    - name: Fetch generated keys and certificates to the local host
+      ansible.posix.synchronize:
+        src: "{{ generated_certs_dir }}"
+        dest: "{{ playbook_dir }}/keys/"
+        mode: pull

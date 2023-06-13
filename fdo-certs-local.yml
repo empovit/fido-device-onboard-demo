@@ -1,0 +1,12 @@
+---
+- name: Generate FDO keys and certificates
+  hosts: localhost
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Generate FDO keys and certificates on localhost
+      ansible.builtin.import_role:
+        name: community.fdo.generate_keys_and_certificates
+      vars:
+        generated_certs_dir: "{{ playbook_dir }}/keys/"

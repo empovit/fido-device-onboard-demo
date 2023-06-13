@@ -6,7 +6,7 @@
 
   vars:
     installation_device: /dev/vda
-    compose_type: edge-simplified-installer
+    builder_blueprint_name: fdo-demo
 
   tasks:
     - name: Set up osbuild server
@@ -17,8 +17,7 @@
       ansible.builtin.import_role:
         name: infra.osbuild.builder
       vars:
-        builder_compose_type: "{{ compose_type }}"
-        builder_blueprint_name: "{{ blueprint_name }}"
+        builder_compose_type: edge-simplified-installer
         builder_compose_customizations:
           installation_device: "{{ installation_device }}"
           fdo:
