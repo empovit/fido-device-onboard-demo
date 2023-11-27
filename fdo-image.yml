@@ -17,6 +17,7 @@
       ansible.builtin.import_role:
         name: infra.osbuild.builder
       vars:
+        builder_request_timeout: 480
         builder_compose_type: edge-simplified-installer
         builder_compose_customizations:
           installation_device: "{{ installation_device }}"
