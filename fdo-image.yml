@@ -7,6 +7,7 @@
   vars:
     installation_device: /dev/vda
     builder_blueprint_name: fdo-demo
+    manufacturing_server_port: 8080
 
   tasks:
     - name: Set up osbuild server
@@ -22,8 +23,16 @@
         builder_compose_customizations:
           installation_device: "{{ installation_device }}"
           fdo:
-            manufacturing_server_url: "http://{{ manufacturing_server_host }}:8080"
+            manufacturing_server_url: "http://{{ manufacturing_server_host }}:{{ manufacturing_server_port }}"
             diun_pub_key_insecure: "true"
+          user:
+            name: "core"
+            description: "test user"
+            password: "{{ builder_core_password }}"
+            key: "{{ builder_core_pub_key }}"
+            groups:
+              - "users"
+              - "wheel"
         builder_compose_pkgs: []
 
     - name: Download latest installer image to local host
