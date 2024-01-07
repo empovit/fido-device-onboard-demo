@@ -10,6 +10,14 @@ Useful links
 
 * [How to onboard edge devices at scale with FDO and Linux](https://www.redhat.com/sysadmin/edge-device-onboarding-fdo)
 
+## Prerequisites
+
+Before you begin, install Ansible dependencies and collections.
+
+```console
+ansible-galaxy install -r requirements.yml
+```
+
 ## FDO Keys and Certificates
 
 FDO servers require a number of keys and certificates. Those can be generated using the `community.fdo.generate_keys_and_certificates` role of the [Community FDO collection](https://github.com/ansible-collections/community.fdo) either locally or on a remote host.
